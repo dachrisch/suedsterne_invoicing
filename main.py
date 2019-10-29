@@ -3,7 +3,9 @@ from datetime import timedelta
 
 from google.oauth2 import service_account
 
+from google_calendar.events import CalendarEvent
 from google_calendar.service import GoogleCalendarService
+from invoicing.billing import CustomerBilling, MonthlyBilling
 
 
 def service_account_main():
@@ -20,19 +22,12 @@ def service_account_main():
                                 orderBy='startTime').execute())
 
 
-
-
 def google_main():
-    customer_billing_sheets = {}
+    billing = MonthlyBilling(2019, 10)
     for calendar_event in GoogleCalendarService().customer_events(2019, 10):
-        customer = calendar_event.customer
-        if customer not in customer_billing_sheets.keys():
-            customer_billing_sheets[customer] = CustomerBillingSheet(customer)
+        billing.add(CustomerBilling.from_event(CalendarEvent.from_json(calendar_event)))
 
-        customer_billing_sheets[customer].add_event(calendar_event)
-
-    for customer_billing_sheet in customer_billing_sheets.values():
-        print(customer_billing_sheet.generate_billing())
+    print(billing)
 
 
 if __name__ == '__main__':

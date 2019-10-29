@@ -82,6 +82,35 @@ class ProcessCalendarEvents(unittest.TestCase):
         self.assertEqual(calendar_event.price, '1800 €')
         self.assertEqual(calendar_event.travel_expenses, '100 €')
 
+    def test_no_description_raises_key_error(self):
+        event_json = {'kind': 'calendar#event',
+                      'status': 'confirmed',
+                      'created': '2019-09-19T15:52:50.000Z',
+                      'updated': '2019-10-28T12:24:34.718Z',
+                      'summary': 'Kunde: zeppelin',
+                      'start': {'date': '2019-10-01'},
+                      'end': {'date': '2019-10-02'}}
+
+        with self.assertRaises(KeyError):
+            CalendarEvent.from_json(event_json)
+
+    def test_no_travel_expenses_raises_key_error(self):
+        event_json = {'kind': 'calendar#event',
+                      'status': 'confirmed',
+                      'created': '2019-09-19T15:52:50.000Z',
+                      'updated': '2019-10-28T12:24:34.718Z',
+                      'summary': 'Kunde: zeppelin',
+                      'start': {'date': '2019-10-01'},
+                      'end': {'date': '2019-10-02'},
+                      'description': 'Action: Coaching\nPrice: 1800 €'}
+
+        calendar_event = CalendarEvent.from_json(event_json)
+        self.assertEqual(calendar_event.customer, 'zeppelin')
+        self.assertEqual(calendar_event.date, datetime(2019, 10, 1))
+        self.assertEqual(calendar_event.action, 'Coaching')
+        self.assertEqual(calendar_event.price, '1800 €')
+        self.assertEqual(calendar_event.travel_expenses, None)
+
     def test_single_event_to_billing(self):
         event_json = {'kind': 'calendar#event',
                       'status': 'confirmed',
