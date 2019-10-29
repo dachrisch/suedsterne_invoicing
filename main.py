@@ -50,10 +50,11 @@ def customer_events(year, month, template='Kunde: '):
     reference = datetime.datetime(year=year, month=month, day=1)
     start_of_month = reference.isoformat() + 'Z'
     end_of_month = (reference.replace(day=calendar.monthrange(reference.year, reference.month)[1])).isoformat() + 'Z'
+    events = service.events().list(calendarId='primary', timeMin=start_of_month, timeMax=end_of_month, singleEvents=True,
+                                orderBy='startTime', q=template).execute().get('items', [])
+    print(events)
     return map(lambda event: CustomerCalendarEvent(event['summary'].replace(template, '').lower(), event),
-               service.events().list(calendarId='primary', timeMin=start_of_month,
-                                     timeMax=end_of_month, singleEvents=True,
-                                     orderBy='startTime', q=template).execute().get('items', []))
+               events)
 
 
 class CustomerBillingSheet:

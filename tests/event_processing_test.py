@@ -1,15 +1,23 @@
 import unittest
 from datetime import datetime
 
+import dateutil.parser
+import parse
 
-class CalendarTestEvent(object):
-    def __init__(self, customer='Konux', price=1800, date=datetime(2019, 10, 21), action='Coaching',
-                 travel_expense=None):
+
+class CalendarEvent(object):
+    def __init__(self, customer, date, price, action, travel_expense):
         self.customer = customer
         self.price = price
         self.date = date
         self.action = action
         self.travel_expenses = travel_expense
+
+
+class CalendarTestEvent(CalendarEvent):
+    def __init__(self, customer='Konux', date=datetime(2019, 10, 21), price=1800, action='Coaching',
+                 travel_expense=None):
+        CalendarEvent.__init__(self, customer, date, price, action, travel_expense)
 
 
 class CustomerBilling(object):
@@ -75,7 +83,7 @@ class EventProcessingTest(unittest.TestCase):
     def test_activity_with_travel_expenses(self):
         billing = CustomerBilling(CalendarTestEvent().customer)
 
-        billing.add(CalendarTestEvent(action='Coaching', price=2100, travel_expense=200))
+        billing.add(CalendarTestEvent(price=2100, action='Coaching', travel_expense=200))
         self.assertEqual(len(billing.activities), 2)
         self.assertEqual(billing.activities['Reisekosten']['price'], 200)
 
@@ -99,3 +107,32 @@ class MonthlyBillingTest(unittest.TestCase):
         self.assertEqual(len(monthly_billing.customer_billings), 2)
         self.assertIn(CustomerBilling(customer='Konux'), monthly_billing.customer_billings)
         self.assertIn(CustomerBilling(customer='Zeppelin'), monthly_billing.customer_billings)
+
+
+class ProcessCalendarEvents(unittest.TestCase):
+    def test_single_day_event_to_object(self):
+        event_json = {'kind': 'calendar#event',
+                      'status': 'confirmed',
+                      'created': '2019-09-19T15:52:50.000Z',
+                      'updated': '2019-10-28T12:24:34.718Z',
+                      'summary': 'Kunde: zeppelin',
+                      'start': {'date': '2019-10-01'},
+                      'end': {'date': '2019-10-02'},
+                      'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'}
+        TEMPLATE = 'Kunde: '
+
+        class CalendarEventProcessor:
+            @staticmethod
+            def from_json(json):
+                customer = json['summary'].replace(TEMPLATE, '')
+                date = dateutil.parser.parse(json['start'].get('dateTime', json['start'].get('date')))
+                result = parse.parse("Action: {action}\nPrice: {price}\nTravel Expense: {travel_expense}",
+                                     json['description'])
+                return CalendarEvent(customer, date, result['price'], result['action'], result['travel_expense'])
+
+        calendar_event = CalendarEventProcessor.from_json(event_json)
+        self.assertEqual(calendar_event.customer, 'zeppelin')
+        self.assertEqual(calendar_event.date, datetime(2019, 10, 1))
+        self.assertEqual(calendar_event.action, 'Coaching')
+        self.assertEqual(calendar_event.price, '1800 €')
+        self.assertEqual(calendar_event.travel_expenses, '100 €')
