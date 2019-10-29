@@ -28,6 +28,12 @@ class CustomerBilling(object):
     def __hash__(self):
         return hash(self.customer)
 
+    def __str__(self):
+        return "CustomerBilling(customer=%s, activities=%s)" % (
+            self.customer, ["%s: %s @ %s" % (
+                str(activity), self.activities[activity]['days'], self.activities[activity]['price']) for
+                            activity in self.activities.keys()])
+
 
 class MonthlyBilling(object):
     def __init__(self, year, month):
@@ -38,3 +44,7 @@ class MonthlyBilling(object):
     def add(self, customer_billing):
         self.customer_billings.add(customer_billing)
         return self
+
+    def __str__(self):
+        return "MonthlyBilling(billings=%s)" % ", ".join(
+            [str(customer_billing) for customer_billing in self.customer_billings])

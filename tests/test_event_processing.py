@@ -150,3 +150,24 @@ class ProcessCalendarEvents(unittest.TestCase):
         self.assertEqual(len(billing.customer_billings), 2)
         self.assertIn(CustomerBilling.from_event(calendar_event1), billing.customer_billings)
         self.assertIn(CustomerBilling.from_event(calendar_event2), billing.customer_billings)
+
+
+class CustomerBillingTest(unittest.TestCase):
+    def test_customer_only_to_string(self):
+        self.assertEqual(str(CustomerBilling('Konux')), 'CustomerBilling(customer=Konux, activities=[])')
+
+    def test_one_activity_to_string(self):
+        self.assertEqual(str(CustomerBilling('Konux').add(CalendarEvent.from_json({'kind': 'calendar#event',
+                                                                                   'status': 'confirmed',
+                                                                                   'created': '2019-09-19T15:52:50.000Z',
+                                                                                   'updated': '2019-10-28T12:24:34.718Z',
+                                                                                   'summary': 'Kunde: zeppelin',
+                                                                                   'start': {'date': '2019-10-01'},
+                                                                                   'end': {'date': '2019-10-02'},
+                                                                                   'description':
+                                                                                       'Action: Coaching\n'
+                                                                                       'Price: 1800 €\n'
+                                                                                       'Travel Expense: 100 €'}))),
+                         "CustomerBilling(customer=Konux, "
+                         "activities=['Coaching: [datetime.datetime(2019, 10, 1, 0, 0)] @ 1800 €', "
+                         "'Reisekosten: [datetime.datetime(2019, 10, 1, 0, 0)] @ 100 €'])")
