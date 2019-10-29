@@ -5,7 +5,7 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 
 def service_account_main():
-    from google.oauth2 import service_account
+    from google_calendar.oauth2 import service_account
     from os import path
     credentials = service_account.Credentials.from_service_account_file(
         path.join(path.join(path.expanduser('~'), '.credentials'), 'suedsterne-1328.json'),
@@ -92,7 +92,7 @@ def calendar_service():
     import os
     import pickle
     from os import path
-    from google.auth.transport.requests import Request
+    from google_calendar.auth.transport.requests import Request
     from google_auth_oauthlib.flow import InstalledAppFlow
     from googleapiclient.discovery import build
     """Shows basic usage of the Google Calendar API.

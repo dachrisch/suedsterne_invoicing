@@ -1,23 +1,9 @@
+# coding=utf-8
+
 import unittest
 from datetime import datetime
 
-import dateutil.parser
-import parse
-
-
-class CalendarEvent(object):
-    def __init__(self, customer, date, price, action, travel_expense):
-        self.customer = customer
-        self.price = price
-        self.date = date
-        self.action = action
-        self.travel_expenses = travel_expense
-
-
-class CalendarTestEvent(CalendarEvent):
-    def __init__(self, customer='Konux', date=datetime(2019, 10, 21), price=1800, action='Coaching',
-                 travel_expense=None):
-        CalendarEvent.__init__(self, customer, date, price, action, travel_expense)
+from google_calendar.events import CalendarEvent, CalendarEventProcessor
 
 
 class CustomerBilling(object):
@@ -56,6 +42,12 @@ class MonthlyBilling(object):
     def add(self, customer_billing):
         self.customer_billings.add(customer_billing)
         return self
+
+
+class CalendarTestEvent(CalendarEvent):
+    def __init__(self, customer='Konux', date=datetime(2019, 10, 21), price=1800, action='Coaching',
+                 travel_expense=None):
+        CalendarEvent.__init__(self, customer, date, price, action, travel_expense)
 
 
 class EventProcessingTest(unittest.TestCase):
@@ -119,16 +111,6 @@ class ProcessCalendarEvents(unittest.TestCase):
                       'start': {'date': '2019-10-01'},
                       'end': {'date': '2019-10-02'},
                       'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'}
-        TEMPLATE = 'Kunde: '
-
-        class CalendarEventProcessor:
-            @staticmethod
-            def from_json(json):
-                customer = json['summary'].replace(TEMPLATE, '')
-                date = dateutil.parser.parse(json['start'].get('dateTime', json['start'].get('date')))
-                result = parse.parse("Action: {action}\nPrice: {price}\nTravel Expense: {travel_expense}",
-                                     json['description'])
-                return CalendarEvent(customer, date, result['price'], result['action'], result['travel_expense'])
 
         calendar_event = CalendarEventProcessor.from_json(event_json)
         self.assertEqual(calendar_event.customer, 'zeppelin')
