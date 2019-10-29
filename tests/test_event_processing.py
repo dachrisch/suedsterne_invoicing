@@ -96,3 +96,28 @@ class ProcessCalendarEvents(unittest.TestCase):
         self.assertEqual(CustomerBilling.from_event(calendar_event).customer, 'zeppelin')
         self.assertEqual(CustomerBilling.from_event(calendar_event).activities['Coaching'],
                          {'days': [datetime(2019, 10, 1, 0, 0)], 'price': '1800 €'})
+
+    def test_generate_monthly_billing_from_calendar(self):
+        calendar_event1 = CalendarEvent.from_json({'kind': 'calendar#event',
+                                                   'status': 'confirmed',
+                                                   'created': '2019-09-19T15:52:50.000Z',
+                                                   'updated': '2019-10-28T12:24:34.718Z',
+                                                   'summary': 'Kunde: konux',
+                                                   'start': {'date': '2019-10-01'},
+                                                   'end': {'date': '2019-10-02'},
+                                                   'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'})
+        calendar_event2 = CalendarEvent.from_json({'kind': 'calendar#event',
+                                                   'status': 'confirmed',
+                                                   'created': '2019-09-19T15:52:50.000Z',
+                                                   'updated': '2019-10-28T12:24:34.718Z',
+                                                   'summary': 'Kunde: zeppelin',
+                                                   'start': {'date': '2019-10-01'},
+                                                   'end': {'date': '2019-10-02'},
+                                                   'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'})
+
+        billing = MonthlyBilling(2019, 10).add(CustomerBilling.from_event(calendar_event1)).add(
+            CustomerBilling.from_event(calendar_event2))
+
+        self.assertEqual(len(billing.customer_billings), 2)
+        self.assertIn(CustomerBilling.from_event(calendar_event1), billing.customer_billings)
+        self.assertIn(CustomerBilling.from_event(calendar_event2), billing.customer_billings)
