@@ -3,45 +3,8 @@
 import unittest
 from datetime import datetime
 
-from google_calendar.events import CalendarEvent, CalendarEventProcessor
-
-
-class CustomerBilling(object):
-    def __init__(self, customer):
-        self.customer = customer
-        self.activities = {}
-
-    def add(self, event):
-        self.__add_activity(event.action, event.date, event.price)
-        if event.travel_expenses:
-            self.__add_activity('Reisekosten', event.date, event.travel_expenses)
-
-        return self
-
-    def __add_activity(self, activity, date, price):
-        if activity not in self.activities.keys():
-            self.activities[activity] = {'days': [], 'price': price}
-
-        self.activities[activity]['days'].append(date)
-
-    def __eq__(self, other):
-        if isinstance(other, CustomerBilling):
-            return other.customer == self.customer
-        return False
-
-    def __hash__(self):
-        return hash(self.customer)
-
-
-class MonthlyBilling(object):
-    def __init__(self, year, month):
-        self.year = year
-        self.month = month
-        self.customer_billings = set()
-
-    def add(self, customer_billing):
-        self.customer_billings.add(customer_billing)
-        return self
+from google_calendar.events import CalendarEvent
+from invoicing.billing import CustomerBilling, MonthlyBilling
 
 
 class CalendarTestEvent(CalendarEvent):
@@ -112,9 +75,24 @@ class ProcessCalendarEvents(unittest.TestCase):
                       'end': {'date': '2019-10-02'},
                       'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'}
 
-        calendar_event = CalendarEventProcessor.from_json(event_json)
+        calendar_event = CalendarEvent.from_json(event_json)
         self.assertEqual(calendar_event.customer, 'zeppelin')
         self.assertEqual(calendar_event.date, datetime(2019, 10, 1))
         self.assertEqual(calendar_event.action, 'Coaching')
         self.assertEqual(calendar_event.price, '1800 €')
         self.assertEqual(calendar_event.travel_expenses, '100 €')
+
+    def test_single_event_to_billing(self):
+        event_json = {'kind': 'calendar#event',
+                      'status': 'confirmed',
+                      'created': '2019-09-19T15:52:50.000Z',
+                      'updated': '2019-10-28T12:24:34.718Z',
+                      'summary': 'Kunde: zeppelin',
+                      'start': {'date': '2019-10-01'},
+                      'end': {'date': '2019-10-02'},
+                      'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'}
+
+        calendar_event = CalendarEvent.from_json(event_json)
+        self.assertEqual(CustomerBilling.from_event(calendar_event).customer, 'zeppelin')
+        self.assertEqual(CustomerBilling.from_event(calendar_event).activities['Coaching'],
+                         {'days': [datetime(2019, 10, 1, 0, 0)], 'price': '1800 €'})
