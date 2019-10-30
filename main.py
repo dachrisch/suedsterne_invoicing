@@ -5,7 +5,7 @@ from google.oauth2 import service_account
 
 from google_calendar.events import CalendarEvent
 from google_calendar.service import GoogleCalendarService
-from invoicing.billing import CustomerBilling, MonthlyBilling
+from invoicing.billing import CustomerBilling, MonthlyBilling, MonthlyBillingGenerator
 
 
 def service_account_main():
@@ -23,9 +23,8 @@ def service_account_main():
 
 
 def google_main():
-    billing = MonthlyBilling(2019, 10)
-    for calendar_event in GoogleCalendarService().customer_events(2019, 10):
-        billing.add(CustomerBilling.from_event(CalendarEvent.from_json(calendar_event)))
+    billing = MonthlyBillingGenerator.with_service(GoogleCalendarService()).generate_billing(2019, 10)
+
 
     print(billing)
 

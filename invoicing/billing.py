@@ -1,3 +1,6 @@
+from google_calendar.events import CalendarEvent
+
+
 class CustomerBilling(object):
     @staticmethod
     def from_event(event):
@@ -48,3 +51,21 @@ class MonthlyBilling(object):
     def __str__(self):
         return "MonthlyBilling(billings=%s)" % ", ".join(
             [str(customer_billing) for customer_billing in self.customer_billings])
+
+
+class _MonthlyBillingServiceGenerator(object):
+    def __init__(self, service):
+        self.service = service
+
+    def generate_billing(self, year, month):
+        billing = MonthlyBilling(2019, 10)
+        for calendar_event in self.service.customer_events(2019, 10):
+            billing.add(CustomerBilling.from_event(CalendarEvent.from_json(calendar_event)))
+
+        return billing
+
+
+class MonthlyBillingGenerator(object):
+    @staticmethod
+    def with_service(service):
+        return _MonthlyBillingServiceGenerator(service)
