@@ -1,0 +1,21 @@
+<html>
+<head>
+    <title>Südsterne - Invoicing</title>
+</head>
+<body>
+<h1>Available Billings for {{ billing.month }} {{ billing.year }}</h1>
+{% for customer_billing in billing.customer_billings %}
+<h2>
+    {{ customer_billing.customer }}
+    <table>
+        {% for activity_name, days_price in customer_billing.activities.items() %}
+        <tr>
+            <th>{{ activity_name }}</th>
+            <td>{{ days_price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</h2>
+{% endfor %}
+</body>
+</html>
