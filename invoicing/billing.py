@@ -1,23 +1,25 @@
+import datetime
+
 from google_calendar.events import CalendarEvent
 
 
 class CustomerBilling(object):
     @staticmethod
-    def from_event(event):
+    def from_event(event: CalendarEvent):
         return CustomerBilling(event.customer).add(event)
 
-    def __init__(self, customer):
+    def __init__(self, customer: str):
         self.customer = customer
         self.activities = {}
 
-    def add(self, event):
+    def add(self, event: CalendarEvent):
         self.__add_activity(event.action, event.date, event.price)
         if event.travel_expenses:
             self.__add_activity('Reisekosten', event.date, event.travel_expenses)
 
         return self
 
-    def __add_activity(self, activity, date, price):
+    def __add_activity(self, activity: str, date: datetime, price: str):
         if activity not in self.activities.keys():
             self.activities[activity] = {'days': [], 'price': price}
 
@@ -39,12 +41,12 @@ class CustomerBilling(object):
 
 
 class MonthlyBilling(object):
-    def __init__(self, year, month):
+    def __init__(self, year: int, month: int):
         self.year = year
         self.month = month
         self.customer_billings = {}
 
-    def add(self, event):
+    def add(self, event: CalendarEvent):
         customer_billing = CustomerBilling.from_event(event)
         if customer_billing in self.customer_billings:
             self.customer_billings[customer_billing].add(event)
@@ -62,10 +64,10 @@ class _MonthlyBillingServiceGenerator(object):
     def __init__(self, service):
         self.service = service
 
-    def generate_billing(self, year, month):
+    def generate_billing(self, year: int, month: int):
         billing = MonthlyBilling(year, month)
         for calendar_event in self.service.customer_events(year, month):
-            billing.add(CustomerBilling.from_event(CalendarEvent.from_json(calendar_event)))
+            billing.add(CalendarEvent.from_json(calendar_event))
 
         return billing
 
