@@ -42,10 +42,15 @@ class MonthlyBilling(object):
     def __init__(self, year, month):
         self.year = year
         self.month = month
-        self.customer_billings = set()
+        self.customer_billings = {}
 
-    def add(self, customer_billing):
-        self.customer_billings.add(customer_billing)
+    def add(self, event):
+        customer_billing = CustomerBilling.from_event(event)
+        if customer_billing in self.customer_billings:
+            self.customer_billings[customer_billing].add(event)
+        else:
+            self.customer_billings[customer_billing] = customer_billing
+
         return self
 
     def __str__(self):
@@ -58,8 +63,8 @@ class _MonthlyBillingServiceGenerator(object):
         self.service = service
 
     def generate_billing(self, year, month):
-        billing = MonthlyBilling(2019, 10)
-        for calendar_event in self.service.customer_events(2019, 10):
+        billing = MonthlyBilling(year, month)
+        for calendar_event in self.service.customer_events(year, month):
             billing.add(CustomerBilling.from_event(CalendarEvent.from_json(calendar_event)))
 
         return billing

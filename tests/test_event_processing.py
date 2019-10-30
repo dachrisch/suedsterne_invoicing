@@ -47,8 +47,8 @@ class MonthlyBillingTest(unittest.TestCase):
     def test_add_multiple_clients(self):
         monthly_billing = MonthlyBilling(2019, 10)
 
-        monthly_billing.add(CustomerBilling(customer='Konux')).add(
-            CustomerBilling(customer='Zeppelin'))
+        monthly_billing.add(CalendarTestEvent(customer='Konux')).add(
+            CalendarTestEvent(customer='Zeppelin'))
 
         self.assertEqual(len(monthly_billing.customer_billings), 2)
         self.assertIn(CustomerBilling(customer='Konux'), monthly_billing.customer_billings)
@@ -56,12 +56,12 @@ class MonthlyBillingTest(unittest.TestCase):
     def test_add_multiple_clients_and_activities(self):
         monthly_billing = MonthlyBilling(2019, 10)
 
-        monthly_billing.add(CustomerBilling(customer='Konux').add(CalendarTestEvent(action='Coaching'))).add(
-            CustomerBilling(customer='Zeppelin').add(CalendarTestEvent(action='Scrum Mastering')))
+        monthly_billing.add(CalendarTestEvent(customer='zeppelin', action='Coaching')).add(
+            CalendarTestEvent(customer='konux', action='Scrum Mastering'))
 
         self.assertEqual(len(monthly_billing.customer_billings), 2)
-        self.assertIn(CustomerBilling(customer='Konux'), monthly_billing.customer_billings)
-        self.assertIn(CustomerBilling(customer='Zeppelin'), monthly_billing.customer_billings)
+        self.assertIn(CustomerBilling(customer='konux'), monthly_billing.customer_billings)
+        self.assertIn(CustomerBilling(customer='zeppelin'), monthly_billing.customer_billings)
 
 
 class ProcessCalendarEvents(unittest.TestCase):
@@ -126,7 +126,7 @@ class ProcessCalendarEvents(unittest.TestCase):
         self.assertEqual(CustomerBilling.from_event(calendar_event).activities['Coaching'],
                          {'days': [datetime(2019, 10, 1, 0, 0)], 'price': '1800 €'})
 
-    def test_generate_monthly_billing_from_calendar(self):
+    def test_generate_monthly_billing_from_calendar_2_customers(self):
         calendar_event1 = CalendarEvent.from_json({'kind': 'calendar#event',
                                                    'status': 'confirmed',
                                                    'created': '2019-09-19T15:52:50.000Z',
@@ -144,10 +144,33 @@ class ProcessCalendarEvents(unittest.TestCase):
                                                    'end': {'date': '2019-10-02'},
                                                    'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'})
 
-        billing = MonthlyBilling(2019, 10).add(CustomerBilling.from_event(calendar_event1)).add(
-            CustomerBilling.from_event(calendar_event2))
+        billing = MonthlyBilling(2019, 10).add(calendar_event1).add(calendar_event2)
 
         self.assertEqual(len(billing.customer_billings), 2)
+        self.assertIn(CustomerBilling.from_event(calendar_event1), billing.customer_billings)
+        self.assertIn(CustomerBilling.from_event(calendar_event2), billing.customer_billings)
+
+    def test_generate_monthly_billing_from_calendar_2_activities(self):
+        calendar_event1 = CalendarEvent.from_json({'kind': 'calendar#event',
+                                                   'status': 'confirmed',
+                                                   'created': '2019-09-19T15:52:50.000Z',
+                                                   'updated': '2019-10-28T12:24:34.718Z',
+                                                   'summary': 'Kunde: zeppelin',
+                                                   'start': {'date': '2019-10-01'},
+                                                   'end': {'date': '2019-10-02'},
+                                                   'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'})
+        calendar_event2 = CalendarEvent.from_json({'kind': 'calendar#event',
+                                                   'status': 'confirmed',
+                                                   'created': '2019-09-19T15:52:50.000Z',
+                                                   'updated': '2019-10-28T12:24:34.718Z',
+                                                   'summary': 'Kunde: zeppelin',
+                                                   'start': {'date': '2019-10-03'},
+                                                   'end': {'date': '2019-10-02'},
+                                                   'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'})
+
+        billing = MonthlyBilling(2019, 10).add(calendar_event1).add(calendar_event2)
+
+        self.assertEqual(len(billing.customer_billings), 1)
         self.assertIn(CustomerBilling.from_event(calendar_event1), billing.customer_billings)
         self.assertIn(CustomerBilling.from_event(calendar_event2), billing.customer_billings)
 
