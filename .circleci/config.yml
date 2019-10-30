@@ -36,8 +36,9 @@ jobs:
             pip install -r requirements.txt
 
       - run:
-          name: pytest
+          name: install pytest
           command: |
+            . venv/bin/activate
             pip install pytest
 
       - save_cache:
