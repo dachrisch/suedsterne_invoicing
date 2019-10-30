@@ -1,4 +1,4 @@
-from datetime import datetime
+import os
 
 from dateutil.parser import parse
 from flask import Flask, render_template
@@ -15,7 +15,7 @@ def home():
     if request.method == 'POST':
         date = parse("%s-%s-01" % (request.form.get('year'), request.form['month']))
 
-        billing = MonthlyBillingGenerator.with_service(GoogleCalendarService()).generate_billing(date.year,date.month)
+        billing = MonthlyBillingGenerator.with_service(GoogleCalendarService()).generate_billing(date.year, date.month)
 
         return render_template('invoicing.html', billing=billing)
 
@@ -27,4 +27,5 @@ def home():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host=os.getenv('INVOICE_SERVICE_HOST', '0.0.0.0'),
+            port=os.getenv('INVOICE_SERVICE_PORT', 5000))
