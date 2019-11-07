@@ -11,8 +11,6 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 
 class GoogleCalendarService(object):
-    def __init__(self):
-        self.service = self.__calendar_service()
 
     def customer_events(self, year: int, month: int, template: str = 'Kunde: '):
 
@@ -20,9 +18,10 @@ class GoogleCalendarService(object):
         start_of_month = reference.isoformat() + 'Z'
         end_of_month = (reference.replace(
             day=calendar.monthrange(reference.year, reference.month)[1])).isoformat() + 'Z'
-        events = self.service.events().list(calendarId='primary', timeMin=start_of_month, timeMax=end_of_month,
-                                            singleEvents=True,
-                                            orderBy='startTime', q=template).execute().get('items', [])
+        events = self.__calendar_service().events().list(calendarId='primary', timeMin=start_of_month,
+                                                         timeMax=end_of_month,
+                                                         singleEvents=True,
+                                                         orderBy='startTime', q=template).execute().get('items', [])
         return events
 
     def __calendar_service(self):

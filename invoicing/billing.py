@@ -85,7 +85,7 @@ class MonthlyBilling(object):
             [str(customer_billing) for customer_billing in self.customer_billings])
 
 
-class _MonthlyBillingServiceGenerator(object):
+class MonthlyBillingServiceGenerator(object):
     def __init__(self, service):
         self.service = service
 
@@ -99,5 +99,5 @@ class _MonthlyBillingServiceGenerator(object):
 
 class MonthlyBillingGenerator(object):
     @staticmethod
-    def with_service(service) -> _MonthlyBillingServiceGenerator:
-        return _MonthlyBillingServiceGenerator(service)
+    def with_service(service) -> MonthlyBillingServiceGenerator:
+        return MonthlyBillingServiceGenerator(service)
