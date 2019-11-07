@@ -3,3 +3,5 @@ google_auth_oauthlib
 python-dateutil
 parse
 flask
+flask_bootstrap
+flask_wtf
