@@ -5,3 +5,4 @@ parse
 flask
 flask_bootstrap
 flask_wtf
+babel

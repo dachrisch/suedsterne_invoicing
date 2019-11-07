@@ -1,5 +1,7 @@
 import datetime
 
+from babel.dates import format_datetime
+
 from google_calendar.events import CalendarEvent
 
 
@@ -14,7 +16,7 @@ class Price(object):
     @property
     def month(self):
         assert len(set([date.month for date in self.days])) < 2
-        return self.days and self.days[0].strftime('%B')
+        return format_datetime(self.days[0], 'MMMM', locale='de')
 
     @property
     def dates_str(self):

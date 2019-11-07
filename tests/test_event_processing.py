@@ -32,10 +32,11 @@ class TestActivities(unittest.TestCase):
     def test_dates_to_string(self):
         billing = CustomerBilling('Konux')
         billing.add(CalendarTestEvent(action='Coaching', price=1800, date=datetime(2019, 10, 7)))
-        self.assertEqual(billing.activities['Coaching'].prices[1800].dates_str, "7. October")
+        self.assertEqual('7. Oktober', billing.activities['Coaching'].prices[1800].dates_str)
 
         billing.add(CalendarTestEvent(action='Coaching', price=1800, date=datetime(2019, 10, 21)))
-        self.assertEqual(billing.activities['Coaching'].prices[1800].dates_str, "7., 21. October")
+        self.assertEqual('7., 21. Oktober', billing.activities['Coaching'].prices[1800].dates_str)
+
 
 class EventProcessingTest(unittest.TestCase):
     def test_creates_billing_from_one_event(self):
