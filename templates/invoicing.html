@@ -8,10 +8,12 @@
 <h2>
     {{ customer_billing.customer }}
     <table>
-        {% for activity_name, days_price in customer_billing.activities.items() %}
+        {% for activity_name, activity in customer_billing.activities.items() %}
         <tr>
             <th>{{ activity_name }}</th>
-            <td>{{ days_price }}</td>
+            {% for price_value, price in activity.prices.items() %}
+            <td>{{ price.num_days }} x {{ price_value }}: {{ price.dates_str }}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
     </table>

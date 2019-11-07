@@ -3,6 +3,30 @@ import datetime
 from google_calendar.events import CalendarEvent
 
 
+class Price(object):
+    def __init__(self):
+        self.days = []
+
+    @property
+    def num_days(self):
+        return len(self.days)
+
+    @property
+    def month(self):
+        assert len(set([date.month for date in self.days])) < 2
+        return self.days and self.days[0].strftime('%B')
+
+    @property
+    def dates_str(self):
+        return "%s %s" % (', '.join([day.strftime("%-d.") for day in self.days]), self.month)
+
+
+class Activity(dict):
+    def __init__(self):
+        super().__init__()
+        self.prices = {}
+
+
 class CustomerBilling(object):
     @staticmethod
     def from_event(event: CalendarEvent):
@@ -20,10 +44,14 @@ class CustomerBilling(object):
         return self
 
     def __add_activity(self, activity: str, date: datetime, price: str):
-        if activity not in self.activities.keys():
-            self.activities[activity] = {'days': [], 'price': price}
 
-        self.activities[activity]['days'].append(date)
+        if activity not in self.activities.keys():
+            self.activities[activity] = Activity()
+
+        if price not in self.activities[activity].prices.keys():
+            self.activities[activity].prices[price] = Price()
+
+        self.activities[activity].prices[price].days.append(date)
 
     def __eq__(self, other):
         if isinstance(other, CustomerBilling):
@@ -32,12 +60,6 @@ class CustomerBilling(object):
 
     def __hash__(self):
         return hash(self.customer)
-
-    def __str__(self):
-        return "CustomerBilling(customer=%s, activities=%s)" % (
-            self.customer, ["%s: %s @ %s" % (
-                str(activity), self.activities[activity]['days'], self.activities[activity]['price']) for
-                            activity in self.activities.keys()])
 
 
 class MonthlyBilling(object):
