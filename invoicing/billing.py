@@ -1,4 +1,5 @@
 import datetime
+from typing import List, Dict
 
 from babel.dates import format_datetime
 
@@ -7,26 +8,26 @@ from google_calendar.events import CalendarEvent
 
 class Price(object):
     def __init__(self):
-        self.days = []
+        self.days: List[datetime.datetime] = []
 
     @property
-    def num_days(self):
+    def num_days(self) -> int:
         return len(self.days)
 
     @property
-    def month(self):
+    def month(self) -> str:
         assert len(set([date.month for date in self.days])) < 2
         return format_datetime(self.days[0], 'MMMM', locale='de')
 
     @property
-    def dates_str(self):
+    def dates_str(self) -> str:
         return "%s %s" % (', '.join([day.strftime("%-d.") for day in self.days]), self.month)
 
 
 class Activity(dict):
     def __init__(self):
         super().__init__()
-        self.prices = {}
+        self.prices: Dict[str, Price] = {}
 
 
 class CustomerBilling(object):
@@ -36,7 +37,7 @@ class CustomerBilling(object):
 
     def __init__(self, customer: str):
         self.customer = customer
-        self.activities = {}
+        self.activities: Dict[str, Activity] = {}
 
     def add(self, event: CalendarEvent):
         self.__add_activity(event.action, event.date, event.price)
@@ -68,7 +69,7 @@ class MonthlyBilling(object):
     def __init__(self, year: int, month: int):
         self.year = year
         self.month = month
-        self.customer_billings = {}
+        self.customer_billings: Dict[CustomerBilling, CustomerBilling] = {}
 
     def add(self, event: CalendarEvent):
         customer_billing = CustomerBilling.from_event(event)
@@ -88,7 +89,7 @@ class _MonthlyBillingServiceGenerator(object):
     def __init__(self, service):
         self.service = service
 
-    def generate_billing(self, year: int, month: int):
+    def generate_billing(self, year: int, month: int) -> MonthlyBilling:
         billing = MonthlyBilling(year, month)
         for calendar_event in self.service.customer_events(year, month):
             billing.add(CalendarEvent.from_json(calendar_event))
@@ -98,5 +99,5 @@ class _MonthlyBillingServiceGenerator(object):
 
 class MonthlyBillingGenerator(object):
     @staticmethod
-    def with_service(service):
+    def with_service(service) -> _MonthlyBillingServiceGenerator:
         return _MonthlyBillingServiceGenerator(service)

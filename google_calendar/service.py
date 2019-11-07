@@ -14,7 +14,7 @@ class GoogleCalendarService(object):
     def __init__(self):
         self.service = self.__calendar_service()
 
-    def customer_events(self, year, month, template='Kunde: '):
+    def customer_events(self, year: int, month: int, template: str = 'Kunde: '):
 
         reference = datetime(year=year, month=month, day=1)
         start_of_month = reference.isoformat() + 'Z'
