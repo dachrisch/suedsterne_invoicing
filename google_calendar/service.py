@@ -2,8 +2,8 @@ import calendar
 from datetime import datetime
 from os import path
 
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import build_http
 
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
@@ -22,15 +22,9 @@ class GoogleCalendarService(object):
         return events
 
     def __calendar_service(self):
-        from oauth2client import client, file, tools
-        client_secret = path.join(path.join(path.expanduser('~'), '.credentials', 'calendar.json'))
-        storage = file.Storage('.cal_store')
-        credentials = storage.get()
-        flow = client.flow_from_clientsecrets(client_secret, scope=SCOPES,
-                                              message=tools.message_if_missing(client_secret))
-        if credentials is None or credentials.invalid:
-            credentials = tools.run_flow(flow, storage)
-        http = credentials.authorize(http=build_http())
-        service = build('calendar', 'v3', http=http)
-        storage.delete()
+        credentials = service_account.Credentials.from_service_account_file(
+            path.join(path.join(path.expanduser('~'), '.credentials'), 'suedsterne-1328.json'),
+            scopes=SCOPES).with_subject('cd@it-agile.de')
+
+        service = build('calendar', 'v3', credentials=credentials)
         return service
