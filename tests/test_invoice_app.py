@@ -16,10 +16,17 @@ class TestCalendarService:
                  'description': 'Action: Coaching\nPrice: 1800 €\nTravel Expense: 100 €'}]
 
 
+class FakeGoogleService(object):
+    @property
+    def authorized(self):
+        return True
+
+
 class TestInvoiceApp(unittest.TestCase):
     def setUp(self):
         self.app = create_app().test_client()
         InvoiceView.service = MonthlyBillingServiceGenerator(TestCalendarService())
+        InvoiceView.auth_service = FakeGoogleService()
 
     def test_main_page_produces_month_field(self):
         response = self.app.get('/', follow_redirects=True)

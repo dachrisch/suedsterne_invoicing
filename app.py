@@ -1,11 +1,9 @@
 import os
-from os import path
 
 from flask import Flask, render_template, url_for
 from flask_bootstrap import Bootstrap
 from flask_classful import FlaskView, route
 from flask_dance.contrib.google import make_google_blueprint, google
-from oauth2client import clientsecrets
 from werkzeug.utils import redirect
 
 from google_calendar.service import GoogleCalendarService
@@ -15,10 +13,11 @@ from web.form import BillingMonthForm
 
 class InvoiceView(FlaskView):
     service: MonthlyBillingServiceGenerator = MonthlyBillingGenerator.with_service(GoogleCalendarService())
+    auth_service = google
 
     @route('/<year>/<month>')
     def index(self, year, month):
-        if not google.authorized:
+        if not InvoiceView.auth_service.authorized:
             return redirect(url_for('google.login'))
 
         billing = InvoiceView.service.generate_billing(int(year), int(month))
@@ -43,11 +42,9 @@ class HomeView(FlaskView):
 def create_app():
     invoice_app = Flask(__name__)
     invoice_app.config['SECRET_KEY'] = 'secret'
-    client_secret = path.join(path.join(path.expanduser('~'), '.credentials', 'calendar.json'))
-    client_type, client_info = clientsecrets.loadfile(client_secret)
     blueprint = make_google_blueprint(
-        client_id=client_info['client_id'],
-        client_secret=client_info['client_secret'],
+        client_id=os.getenv('CLIENT_ID', 'client_id'),
+        client_secret=os.getenv('CLIENT_SECRET', 'client_secret'),
     )
     invoice_app.register_blueprint(blueprint, url_prefix="/login")
 
