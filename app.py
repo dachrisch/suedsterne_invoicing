@@ -55,7 +55,15 @@ def create_app():
     return invoice_app
 
 
+def create_ssl_context():
+    certificate = os.getenv('SSL_CERT', None)
+    key = os.getenv('SSL_KEY', None)
+    if certificate and key:
+        return certificate, key
+    return 'adhoc'
+
+
 if __name__ == "__main__":
-    create_app().run(ssl_context='adhoc',
+    create_app().run(ssl_context=create_ssl_context(),
                      host=os.getenv('INVOICE_SERVICE_HOST', 'localhost'),
                      port=os.getenv('INVOICE_SERVICE_PORT', 5000))
