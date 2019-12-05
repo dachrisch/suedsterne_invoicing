@@ -3,21 +3,22 @@
     <title>Südsterne - Invoicing</title>
 </head>
 <body>
-<h1>Available Billings for {{ billing.month }} {{ billing.year }}</h1>
+<h1>Available Billings for {{ name }} <{{ billing.month }}/{{ billing.year }}></h1>
 {% for customer_billing in billing.customer_billings %}
 <h2>
     {{ customer_billing.customer }}
-    <table>
-        {% for activity_name, activity in customer_billing.activities.items() %}
-        <tr>
-            <th>{{ activity_name }}</th>
-            {% for price_value, price in activity.prices.items() %}
-            <td>{{ price.num_days }} x {{ price_value }}: {{ price.dates_str }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
 </h2>
+<table>
+    {% for activity_name, activity in customer_billing.activities.items() %}
+    <tr>
+        <th>{{ activity_name }}</th>
+        {% for price_value, price in activity.prices.items() %}
+        <td>{{ price.num_days }} x {{ price_value }}: {{ price.dates_str }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
 {% endfor %}
+
 </body>
 </html>
