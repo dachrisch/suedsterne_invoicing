@@ -1,7 +1,8 @@
 import unittest
 
-from app import create_app, InvoiceView
+from app import create_app
 from invoicing.billing import MonthlyBillingServiceGenerator
+from web.views import InvoiceView
 
 
 class TestCalendarService:
@@ -17,16 +18,29 @@ class TestCalendarService:
 
 
 class FakeGoogleService(object):
+    class JsonWrapper(object):
+        def __init__(self, return_json):
+            self.return_json = return_json
+
+        def json(self):
+            return self.return_json
+
+    def __init__(self, get_options=None):
+        self.get_options = get_options
+
     @property
     def authorized(self):
         return True
+
+    def get(self, url):
+        return FakeGoogleService.JsonWrapper(self.get_options[url])
 
 
 class TestInvoiceApp(unittest.TestCase):
     def setUp(self):
         self.app = create_app().test_client()
         InvoiceView.service = MonthlyBillingServiceGenerator(TestCalendarService())
-        InvoiceView.auth_service = FakeGoogleService()
+        InvoiceView.auth_service = FakeGoogleService({'/oauth2/v1/userinfo': {'given_name': 'Chris'}})
 
     def test_main_page_produces_month_field(self):
         response = self.app.get('/', follow_redirects=True)
