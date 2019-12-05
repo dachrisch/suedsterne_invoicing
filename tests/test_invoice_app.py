@@ -2,7 +2,7 @@ import unittest
 
 from app import create_app
 from invoicing.billing import MonthlyBillingServiceGenerator
-from web.views import InvoiceView
+from web.views import InvoiceView, HomeView
 
 
 class TestCalendarService:
@@ -40,7 +40,9 @@ class TestInvoiceApp(unittest.TestCase):
     def setUp(self):
         self.app = create_app().test_client()
         InvoiceView.service = MonthlyBillingServiceGenerator(TestCalendarService())
-        InvoiceView.auth_service = FakeGoogleService({'/oauth2/v1/userinfo': {'given_name': 'Chris'}})
+        google_service = FakeGoogleService({'/oauth2/v1/userinfo': {'given_name': 'Chris'}})
+        InvoiceView.auth_service = google_service
+        HomeView.auth_service = google_service
 
     def test_main_page_produces_month_field(self):
         response = self.app.get('/', follow_redirects=True)

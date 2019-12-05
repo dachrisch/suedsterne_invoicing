@@ -23,12 +23,13 @@ class InvoiceView(FlaskView):
 
 class HomeView(FlaskView):
     route_base = '/'
+    auth_service = google
 
     def index(self):
-        if not InvoiceView.auth_service.authorized:
+        if not HomeView.auth_service.authorized:
             return redirect(url_for('google.login'))
         form = BillingMonthForm()
-        return render_template('month_chooser.html', form=form)
+        return render_template('month_chooser.html', form=form, name=GoogleUserInfo(HomeView.auth_service).mate)
 
     def post(self):
         form = BillingMonthForm()
