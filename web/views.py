@@ -1,6 +1,7 @@
 from flask import url_for, render_template
 from flask_classful import FlaskView, route
 from flask_dance.contrib.google import google
+from oauthlib.oauth2 import TokenExpiredError
 from werkzeug.utils import redirect
 
 from google_calendar.service import GoogleCalendarService
@@ -16,9 +17,13 @@ class InvoiceView(FlaskView):
     def index(self, year, month):
         if not InvoiceView.auth_service.authorized:
             return redirect(url_for('google.login'))
-        billing = InvoiceView.service.generate_billing(int(year), int(month))
 
-        return render_template('invoicing.html', billing=billing, name=GoogleUserInfo(InvoiceView.auth_service).mate)
+        try:
+            billing = InvoiceView.service.generate_billing(int(year), int(month))
+            return render_template('invoicing.html', billing=billing,
+                                   name=GoogleUserInfo(InvoiceView.auth_service).mate)
+        except TokenExpiredError:
+            return redirect(url_for('google.login'))
 
 
 class HomeView(FlaskView):
@@ -28,8 +33,11 @@ class HomeView(FlaskView):
     def index(self):
         if not HomeView.auth_service.authorized:
             return redirect(url_for('google.login'))
-        form = BillingMonthForm()
-        return render_template('month_chooser.html', form=form, name=GoogleUserInfo(HomeView.auth_service).mate)
+        try:
+            form = BillingMonthForm()
+            return render_template('month_chooser.html', form=form, name=GoogleUserInfo(HomeView.auth_service).mate)
+        except TokenExpiredError:
+            return redirect(url_for('google.login'))
 
     def post(self):
         form = BillingMonthForm()
